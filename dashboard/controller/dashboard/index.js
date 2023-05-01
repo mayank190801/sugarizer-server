@@ -21,6 +21,7 @@ exports.index = function(req, res) {
 	common.reinitLocale(req);
 
 	var data = {};
+	//hello adding one comment
 
 	//get all users
 	getAllUsers(req, res, function(usersResponse) {
