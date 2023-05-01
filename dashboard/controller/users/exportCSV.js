@@ -6,6 +6,10 @@ var superagent = require('superagent'),
 module.exports = function exportCSV(req, res) {
 	var users = [];
 	var Classrooms = {};
+	common.reinitLocale(req);
+	var selectedUsername = req.params.username;
+	var selectedRole = req.params.role;
+	var selectedClassroom = req.params.classroom; 
 
 	function validateUser(user) {
 		var validUser = {
@@ -173,11 +177,25 @@ module.exports = function exportCSV(req, res) {
 				});
 		}
 	], function() {
-		if (users.length == 0) {
-			res.json({success: false, msg: common.l10n.get('NoUsersFound')});
-		} else {
-			res.json({success: true, msg: common.l10n.get('ExportSuccess'), data: users});
-		}
-		return;
+		const filteredUsers = users.filter((user) => {
+			let isRequired = true;
+			if (selectedUsername !== 'undefined' && user.name !== selectedUsername) {
+			  isRequired = false;
+			}
+			if (isRequired && selectedRole !== 'all' && user.type !== selectedRole) {
+			  isRequired = false;
+			}
+			if (isRequired && selectedRole === 'student' && selectedClassroom !== 'undefined' && !selectedClassroom.split(',').includes(user._id)) {
+			  isRequired = false;
+			}
+			return isRequired;
+		  });
+		
+		  if (filteredUsers.length === 0) {
+			res.json({ success: false, msg: common.l10n.get('NoUsersFound') });
+		  } else {
+			res.json({ success: true, msg: common.l10n.get('ExportSuccess'), data: filteredUsers });
+		  }
+		  return;
 	});
 };
